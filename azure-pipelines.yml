@@ -1,0 +1,40 @@
+parameters:
+  - name: vmName 
+    type: string
+    default: 'Default-VM-Name'
+    displayName: 'Name of the VM'
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Bash@3
+  displayName: 'Updating packages and installing Nginx'
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Update Package
+      sudo apt-get update
+      # Installing Nginx
+      sudo apt-get install -y nginx
+      # Starting Nginx service
+      sudo systemctl start nginx
+      # Enabling Nginx 
+      sudo systemctl enable nginx
+
+- task: Bash@3
+  displayName: 'Check Nginx Status'
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Checking Nginx Status
+      systemctl is-active --quiet nginx
+      if [ $? -eq 0 ]; then
+        echo "Restarting Vm: ${{ parameters.vmName }}"
+      else
+        echo "Error: Nginx is not active."
+        exit 1
+      fi
